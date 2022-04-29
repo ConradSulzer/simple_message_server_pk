@@ -29,11 +29,11 @@ defmodule MessageServer.MessageBucket do
   end
 
   def start_link({bucket_name, _message, _time} = params),
-    do: GenServer.start_link(__MODULE__, params, name: get_name(bucket_name))
+    do: GenServer.start_link(__MODULE__, params, name: create_name(bucket_name))
 
   def handle_message(name, params) do
     GenServer.call(name, {:new_message, params})
   end
 
-  defp get_name(name), do: {:via, Registry, {BucketRegistry, "#{name}"}}
+  defp create_name(name), do: {:via, Registry, {BucketRegistry, "#{name}"}}
 end

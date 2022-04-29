@@ -1,4 +1,6 @@
 defmodule MessageServerWeb.MessageControllerTest do
+  @moduledoc false
+
   use MessageServerWeb.ConnCase
 
   setup do

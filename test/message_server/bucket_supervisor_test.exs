@@ -1,4 +1,6 @@
 defmodule MessageServer.BucketSupervisorTests do
+  @moduledoc false
+
   use ExUnit.Case
 
   alias MessageServer.BucketSupervisor

@@ -1,4 +1,6 @@
 defmodule MessageServer.MessageBucketTest do
+  @moduledoc false
+
   use ExUnit.Case
 
   alias MessageServer.{BucketSupervisor, MessageBucket}
@@ -24,7 +26,7 @@ defmodule MessageServer.MessageBucketTest do
     assert :processed == MessageBucket.handle_message(pid, params)
   end
 
-  test "Does not print the new message for a bucket if message arrives less than a second after the previous print",
+  test "Does not print the new message for a bucket if message arrives less than one second after the previous print",
        %{
          time: time,
          pid: pid,
