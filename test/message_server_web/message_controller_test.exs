@@ -13,7 +13,7 @@ defmodule MessageServerWeb.MessageControllerTest do
         conn,
         MessageServerWeb.Router.Helpers.message_path(conn, :index, %{
           "queue" => "test",
-          "message" => "test 1"
+          "message" => "test controller message"
         })
       )
 
