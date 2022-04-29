@@ -1,18 +1,11 @@
 # MessageServer
 
-To start your Phoenix server:
+Simple endpoint that takes in a GET request with `queue` and `message` query params and prints the message to the terminal IF at least one second has passed since the last time a message was printed from the given queue.
 
-  * Install dependencies with `mix deps.get`
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+```
+GET http://localhost:4000/receive-message/?queue=sandwhiches&message=rueben
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+> rueben
+```
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+Includes testing to prove message are only printed once per second per queue.
