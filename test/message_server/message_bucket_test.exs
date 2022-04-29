@@ -48,4 +48,21 @@ defmodule MessageServer.MessageBucketTest do
     assert :processed == MessageBucket.handle_message(pid, params_one)
     assert :processed == MessageBucket.handle_message(pid, params_two)
   end
+
+  test "Will print messages from separate buckets that arrived in the same second", %{
+    time: time,
+    pid: pid,
+    bucket: bucket
+  } do
+    {:ok, another_pid} =
+      BucketSupervisor.start_bucket(
+        {"another bucket", "test message 6", Timex.shift(time, seconds: -1)}
+      )
+
+    params_one = {bucket, "test message 7", time}
+    params_two = {"another bucket", "test message 8", time}
+
+    assert :processed == MessageBucket.handle_message(pid, params_one)
+    assert :processed == MessageBucket.handle_message(another_pid, params_two)
+  end
 end
