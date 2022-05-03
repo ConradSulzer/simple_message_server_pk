@@ -6,10 +6,8 @@ defmodule MessageServerWeb.MessageController do
   alias MessageServer.{MessageBucket, BucketSupervisor}
 
   def index(conn, %{"queue" => bucket, "message" => message}) do
-    params = {bucket, message, DateTime.utc_now()}
-
-    with {:error, {:already_started, pid}} <- BucketSupervisor.start_bucket(params) do
-      MessageBucket.handle_message(pid, params)
+    with {:error, {:already_started, pid}} <- BucketSupervisor.start_bucket({bucket, message}) do
+      MessageBucket.add_message(pid, message)
     end
 
     send_resp(conn, 200, "Received.")

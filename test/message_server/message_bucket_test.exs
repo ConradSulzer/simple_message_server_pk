@@ -3,68 +3,26 @@ defmodule MessageServer.MessageBucketTest do
 
   use ExUnit.Case
 
-  alias MessageServer.{BucketSupervisor, MessageBucket}
+  import ExUnit.CaptureIO
 
-  setup do
-    time = Timex.beginning_of_day(Timex.now())
-    bucket = System.unique_integer([:positive])
+  alias MessageServer.MessageBucket
 
-    BucketSupervisor.start_bucket({bucket, "test message 0", Timex.shift(time, seconds: -1)})
-
-    [{pid, _}] = Registry.lookup(BucketRegistry, "#{bucket}")
-
-    {:ok, %{time: time, pid: pid, bucket: bucket}}
+  test "init/1 returns {:continue, :print_message}" do
+    assert {:ok, "test message", {:continue, :print_message}} ==
+             MessageBucket.init("test message")
   end
 
-  test "Prints a new message for a bucket", %{
-    time: time,
-    pid: pid,
-    bucket: bucket
-  } do
-    params = {bucket, "test message 1", time}
-
-    assert :processed == MessageBucket.handle_message(pid, params)
+  test "handle_cast/2 returns {:continue, :print_message}" do
+    assert {:noreply, "test message", {:continue, :print_message}} ==
+             MessageBucket.handle_cast({:new_message, "test message"}, nil)
   end
 
-  test "Does not print the new message for a bucket if message arrives less than one second after the previous print",
-       %{
-         time: time,
-         pid: pid,
-         bucket: bucket
-       } do
-    params_one = {bucket, "test message 2", time}
-    params_two = {bucket, "test message 3", Timex.shift(time, milliseconds: 999)}
+  test "handle_continue/2 prints message to terminal and blocks for one second" do
+    time = Timex.now()
+    result = capture_io(fn -> MessageBucket.handle_continue(:print_message, "test message") end)
+    time_after = Timex.now()
 
-    assert :processed == MessageBucket.handle_message(pid, params_one)
-    assert :not_processed == MessageBucket.handle_message(pid, params_two)
-  end
-
-  test "Will print the message for a bucket after one second has passed from previous print", %{
-    time: time,
-    pid: pid,
-    bucket: bucket
-  } do
-    params_one = {bucket, "test message 4", Timex.shift(time, milliseconds: 500)}
-    params_two = {bucket, "test message 5", Timex.shift(time, milliseconds: 1500)}
-
-    assert :processed == MessageBucket.handle_message(pid, params_one)
-    assert :processed == MessageBucket.handle_message(pid, params_two)
-  end
-
-  test "Will print messages from separate buckets that arrived in the same second", %{
-    time: time,
-    pid: pid,
-    bucket: bucket
-  } do
-    {:ok, another_pid} =
-      BucketSupervisor.start_bucket(
-        {"another bucket", "test message 6", Timex.shift(time, seconds: -1)}
-      )
-
-    params_one = {bucket, "test message 7", time}
-    params_two = {"another bucket", "test message 8", time}
-
-    assert :processed == MessageBucket.handle_message(pid, params_one)
-    assert :processed == MessageBucket.handle_message(another_pid, params_two)
+    assert result == "test message\n"
+    assert 1 == Timex.diff(time_after, time, :seconds)
   end
 end

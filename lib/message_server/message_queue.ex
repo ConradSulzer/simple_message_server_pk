@@ -3,36 +3,31 @@ defmodule MessageServer.MessageBucket do
   Genserver to manage the various message buckets.
   """
 
-  use GenServer
+  use GenServer, restart: :transient
 
-  def init({_, message, _} = params) do
+  def init(message) do
+    {:ok, message, {:continue, :print_message}}
+  end
+
+  def handle_cast({:new_message, message}, _state) do
+    {:noreply, message, {:continue, :print_message}}
+  end
+
+  def handle_continue(:print_message, message) do
     IO.puts(message)
-    {:ok, params}
+    Process.sleep(1000)
+    {:noreply, nil, 0}
   end
 
-  def handle_call(
-        {:new_message, {_, message, new_time} = params},
-        _from,
-        {_, _, prev_time} = state
-      ) do
-    if Timex.diff(new_time, prev_time, :seconds) > 0 do
-      IO.puts(message)
-      {:reply, :processed, params}
-    else
-      {:reply, :not_processed, state}
-    end
+  def handle_info(:timeout, state) do
+    {:stop, :normal, state}
   end
 
-  def handle_continue(nil, {_, message, _} = state) do
-    IO.puts(message)
-    {:noreply, state}
-  end
+  def start_link({bucket_name, message}),
+    do: GenServer.start_link(__MODULE__, message, name: create_name(bucket_name))
 
-  def start_link({bucket_name, _message, _time} = params),
-    do: GenServer.start_link(__MODULE__, params, name: create_name(bucket_name))
-
-  def handle_message(name, params) do
-    GenServer.call(name, {:new_message, params})
+  def add_message(name, message) do
+    GenServer.cast(name, {:new_message, message})
   end
 
   defp create_name(name), do: {:via, Registry, {BucketRegistry, "#{name}"}}
