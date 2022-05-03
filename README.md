@@ -1,11 +1,11 @@
 # MessageServer
 
-Simple endpoint that takes in a GET request with `queue` and `message` query params and prints the message to the terminal IF at least one second has passed since the last time a message was printed from the given queue.
+Simple endpoint that takes in a GET request with `queue` and `message` query params. A queue will be started for each unique value received for `queue`. Messages sent to a queue are printed to the terminal at a rate of one per second.
 
 ```
-GET http://localhost:4000/receive-message/?queue=sandwiches&message=rueben
+GET http://localhost:4000/receive-message/?queue=sandwiches&message=reuben
 
-> rueben
+> reuben
 ```
 
-Includes testing to prove message are only printed once per second per queue.
+
